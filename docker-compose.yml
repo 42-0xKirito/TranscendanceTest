@@ -1,0 +1,31 @@
+services:
+    web:
+        build: ./apps/frontend
+        networks: [transcendance]
+        depends_on:
+            database:
+                condition: service_healthy
+
+    database:
+        image: postgres:17-alpine
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: ${POSTGRES_USER:-admin}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+            POSTGRES_DB: ${POSTGRES_DB:-web}
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-web}"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        ports:
+            - "5432:5432"
+        networks: [transcendance]
+
+volumes:
+    postgres_data:
+
+networks:
+    transcendance:
